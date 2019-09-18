@@ -2,7 +2,7 @@
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$PATH:$HOME/.rvm/bin"
 
-GOPATH="/Users/hari/go"
+GOPATH="$HOME/go"
 export PATH="/usr/local/opt/mysql@5.7/bin:${HOME}/.bin:$PATH:$GOPATH/bin"
 
-complete -C /Users/hari/.bin/vault vault
+complete -C $HOME/.bin/vault vault
