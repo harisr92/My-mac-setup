@@ -1,0 +1,37 @@
+- name: Setup my mac
+  hosts: 127.0.0.1,
+  connection: local
+
+  tasks:
+    - name: Setup zsh
+      shell: /bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+      args:
+        executable: /bin/sh
+
+    - name: Setup zshrc
+      file:
+        src: files/zshrc
+        dest: ~/.zshrc
+
+    - name: Emacs | Download
+      uri:
+        url: https://emacsformacosx.com/download/emacs-builds/Emacs-26.3-universal.dmg
+        dest: ~/Downloads/EmacsApp.dmg
+
+    - name: Emacs | Attach
+      shell: hdiutil attach ~/Downloads/EmacsApp.dmg
+
+    - name: Emacs | Install
+      file:
+        src: /Volumes/Emacs/Emacs.app 
+        dest: ~/Applications/Emacs.app
+
+    - name: Spacemacs | Install
+      git:
+        repo: 'https://github.com/syl20bnr/spacemacs'
+        dest: '~/.emacs.d'
+
+    - name: Spacemacs | Configure
+      file:
+        src: files/spacemacs
+        dest: ~/.spacemacs
