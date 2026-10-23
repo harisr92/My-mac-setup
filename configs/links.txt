@@ -1,0 +1,6 @@
+# source (relative to configs/)   target
+zsh/zshrc       ~/.zshrc
+git/gitconfig   ~/.gitconfig
+git/ignore      ~/.config/git/ignore
+doom            ~/.config/doom
+nvim            ~/.config/nvim

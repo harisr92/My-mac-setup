@@ -1,0 +1,90 @@
+# Managed by My-mac-setup (configs/zsh/zshrc). Machine-local tweaks go in ~/.zshrc.local
+
+# Homebrew
+if [ -x /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -x /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+# oh-my-zsh
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="spaceship"
+plugins=(git brew macos docker docker-compose zsh-autosuggestions zsh-syntax-highlighting dotenv emotty emoji)
+[ -s "$ZSH/oh-my-zsh.sh" ] && source "$ZSH/oh-my-zsh.sh"
+
+# PATH
+export PATH="$HOME/.local/bin:/Applications/Emacs.app/Contents/MacOS:$HOME/.config/emacs/bin:$PATH"
+[ -d "$HOME/.local/share/solana/install/active_release/bin" ] && \
+  export PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH"
+
+# History
+HISTSIZE=10000
+SAVEHIST=10000
+setopt SHARE_HISTORY
+setopt HIST_IGNORE_ALL_DUPS
+setopt HIST_FIND_NO_DUPS
+
+# Aliases
+alias ll="ls -lah"
+alias c="clear"
+alias ..="cd .."
+alias ...="cd ../.."
+alias update="brew update && brew upgrade"
+alias cleanup="brew cleanup"
+alias dcupd-dev="docker-compose -f ./docker-compose.dev.yml up --build -d"
+alias dcdn-dev="docker-compose -f ./docker-compose.dev.yml down"
+[ -x "$HOME/.local/share/nushell/bin/nu" ] && alias nu="$HOME/.local/share/nushell/bin/nu"
+
+# fzf
+export FZF_DEFAULT_OPTS="--height 40% --layout=reverse --border"
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+if command -v fzf >/dev/null 2>&1; then
+  source <(fzf --zsh)
+fi
+
+# nvm (brew install nvm)
+export NVM_DIR="$HOME/.nvm"
+if [ -n "${HOMEBREW_PREFIX:-}" ] && [ -s "$HOMEBREW_PREFIX/opt/nvm/nvm.sh" ]; then
+  source "$HOMEBREW_PREFIX/opt/nvm/nvm.sh"
+  [ -s "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm" ] && source "$HOMEBREW_PREFIX/opt/nvm/etc/bash_completion.d/nvm"
+elif [ -s "$NVM_DIR/nvm.sh" ]; then
+  source "$NVM_DIR/nvm.sh"
+fi
+
+# chruby
+if [ -n "${HOMEBREW_PREFIX:-}" ] && [ -s "$HOMEBREW_PREFIX/opt/chruby/share/chruby/chruby.sh" ]; then
+  source "$HOMEBREW_PREFIX/opt/chruby/share/chruby/chruby.sh"
+  source "$HOMEBREW_PREFIX/opt/chruby/share/chruby/auto.sh"
+fi
+
+# iTerm2
+[ -e "$HOME/.iterm2_shell_integration.zsh" ] && source "$HOME/.iterm2_shell_integration.zsh"
+
+# Completions
+[ -d "$HOME/.docker/completions" ] && fpath=("$HOME/.docker/completions" $fpath)
+autoload -Uz compinit
+compinit
+command -v ng >/dev/null 2>&1 && source <(ng completion script)
+command -v jenv >/dev/null 2>&1 && eval "$(jenv init -)"
+command -v but >/dev/null 2>&1 && eval "$(but completions zsh)"
+command -v atomic >/dev/null 2>&1 && source <(COMPLETE=zsh atomic)
+
+# vterm (Doom Emacs)
+if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
+  unsetopt promptsp
+  vterm_printf() {
+    if [ -n "$TMUX" ]; then
+      printf "\ePtmux;\e\e]51;A%s\e\\\e\\" "$1"
+    else
+      printf "\e]51;A%s\e\\" "$1"
+    fi
+  }
+  autoload -U add-zsh-hook
+  add-zsh-hook -Uz chpwd () {
+    vterm_printf "51;A$(whoami)@$(hostname):$(pwd)"
+  }
+fi
+
+[ -f "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"

@@ -1,0 +1,39 @@
+# Browsers
+firefox                     # Firefox
+google-chrome               # Google Chrome
+
+# Terminal / editors
+iterm2                      # iTerm2
+emacs                       # Emacs (used by Doom)
+visual-studio-code          # VS Code
+cursor                      # Cursor
+font-jetbrains-mono-nerd-font  # Nerd font for NvChad/Doom icons
+
+# Development
+orbstack                    # Docker & Linux VMs
+postman                     # API client
+gitbutler                   # Git client
+android-studio              # Android IDE
+flutter                     # Flutter SDK
+session-manager-plugin      # AWS SSM plugin
+
+# AI
+chatgpt                     # ChatGPT
+claude                      # Claude
+opencode-desktop            # OpenCode
+
+# Media / creative
+spotify                     # Spotify
+vlc                         # VLC
+gimp                        # GIMP
+blender                     # Blender
+darktable                   # Photo editing
+canva                       # Canva
+insta360-studio             # Insta360 Studio
+
+# Utilities
+keepassxc                   # Password manager
+protonvpn                   # Proton VPN
+transmission                # BitTorrent client
+google-drive                # Google Drive
+adobe-acrobat-reader        # PDF reader
