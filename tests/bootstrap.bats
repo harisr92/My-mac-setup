@@ -86,3 +86,34 @@ if [ "$1" = --install ]; then touch "$marker"; exit 0; fi
   assert_contains "$output" "[dry-run] git clone"
   assert_contains "$output" "git is not available yet"
 }
+
+@test "dry-run with an existing checkout prints the pull instead of running it" {
+  mkdir -p "$MAC_SETUP_DIR/.git"
+  printf '#!/bin/bash\necho existing-setup "$@"\n' >"$MAC_SETUP_DIR/setup.sh"
+  chmod +x "$MAC_SETUP_DIR/setup.sh"
+  run "$REPO_ROOT/bootstrap.sh" --dry-run
+  assert_status 0
+  assert_contains "$output" "[dry-run] git -C $MAC_SETUP_DIR pull --ff-only"
+  refute_called "git"
+  assert_contains "$output" "existing-setup --dry-run"
+}
+
+@test "dry-run treats /usr/bin/git as unusable until the CLT are installed" {
+  [ -x /usr/bin/git ] || skip "no /usr/bin/git"
+  unstub git
+  stub xcode-select '[ "$1" = -p ] && exit 1; exit 0'
+  run "$REPO_ROOT/bootstrap.sh" --dry-run
+  assert_status 0
+  assert_contains "$output" "git is not available yet"
+  [ ! -e "$MAC_SETUP_DIR" ]
+}
+
+@test "gives up waiting for the CLT after 30 minutes" {
+  stub xcode-select '[ "$1" = -p ] && exit 1; exit 0'
+  stub sleep
+  run "$REPO_ROOT/bootstrap.sh"
+  assert_status 1
+  assert_contains "$output" "still not installed after 30 minutes"
+  [ "$(grep -c '^sleep 10$' "$STUB_LOG")" -eq 180 ]
+  refute_called "git clone"
+}

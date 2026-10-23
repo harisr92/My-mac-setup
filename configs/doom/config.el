@@ -21,7 +21,7 @@
 ;; font string. You generally only need these two:
 (setq doom-font (font-spec :family "Source Code Pro" :size 14 :weight 'Medium)
       doom-variable-pitch-font (font-spec :family "Source Code Pro" :size 16 :weight 'Regular)
-      doom-big-font (font-spec :family "Source Code Pro" :size: 18 :weight 'Bold))
+      doom-big-font (font-spec :family "Source Code Pro" :size 18 :weight 'Bold))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the

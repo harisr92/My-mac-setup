@@ -23,8 +23,9 @@ section_doom() {
     mark_skipped "doomemacs clone" "already installed"
     track "doom sync" "$emacs_dir/bin/doom" sync
   else
-    if [ -e "$emacs_dir" ]; then
-      run_cmd mkdir -p "$BACKUP_DIR/.config" && run_cmd mv "$emacs_dir" "$BACKUP_DIR/.config/emacs"
+    if [ -e "$emacs_dir" ] && ! backup_path "$emacs_dir"; then
+      mark_failed "backup $emacs_dir"
+      return 0
     fi
     git_clone https://github.com/doomemacs/doomemacs "$emacs_dir"
     track "doom install" "$emacs_dir/bin/doom" install --no-config --force

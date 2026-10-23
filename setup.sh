@@ -72,7 +72,7 @@ valid_section() { in_words "$1" "$SECTIONS"; }
 select_section() {
   local s=$1 items=${2:-} cur
   valid_section "$s" || die "unknown section '$s' (see --list)"
-  cur=$(eval "printf '%s' \"\${SEL_$s:-}\"")
+  cur=$(get_selection "$s")
   if [ -z "$items" ] || [ "$cur" = "*" ]; then
     items="*"
   else

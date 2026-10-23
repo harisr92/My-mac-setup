@@ -332,3 +332,37 @@ menu() { printf 'one\tFirst\ntwo\tSecond\nthree\tThird\nfour\tFourth\n'; }
   run track "x" true
   assert_status 0
 }
+
+# --- backup_path ---
+
+@test "backup_path: moves a path into BACKUP_DIR keeping its place under HOME" {
+  mkdir -p "$HOME/.config/emacs"
+  echo x >"$HOME/.config/emacs/init.el"
+  backup_path "$HOME/.config/emacs"
+  [ ! -e "$HOME/.config/emacs" ]
+  [ "$(cat "$BACKUP_DIR/.config/emacs/init.el")" = x ]
+}
+
+@test "backup_path: fails when the move fails" {
+  echo x >"$HOME/.zshrc"
+  stub mv 'exit 1'
+  run backup_path "$HOME/.zshrc"
+  assert_status 1
+}
+
+@test "backup_path: dry-run leaves the file in place" {
+  DRY_RUN=1
+  echo x >"$HOME/.zshrc"
+  run backup_path "$HOME/.zshrc"
+  assert_contains "$output" "[dry-run] mv $HOME/.zshrc $BACKUP_DIR/.zshrc"
+  [ -f "$HOME/.zshrc" ]
+}
+
+@test "backup_and_link: failed backup doesn't link" {
+  echo old >"$HOME/.zshrc"
+  stub mv 'exit 1'
+  run backup_and_link "$BATS_TEST_TMPDIR/src" "$HOME/.zshrc"
+  assert_status 1
+  assert_contains "$output" "backup $HOME/.zshrc failed"
+  [ ! -L "$HOME/.zshrc" ]
+}

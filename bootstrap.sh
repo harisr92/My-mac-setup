@@ -7,6 +7,13 @@ set -eu
 REPO_URL=${MAC_SETUP_REPO:-https://github.com/harisr92/My-mac-setup.git}
 DEST=${MAC_SETUP_DIR:-$HOME/dev/My-mac-setup}
 
+# /usr/bin/git is only a stub that pops up the CLT installer until the
+# Command Line Tools are installed, so it doesn't count as a usable git.
+git_usable() {
+  command -v git >/dev/null 2>&1 || return 1
+  [ "$(command -v git)" != /usr/bin/git ] || xcode-select -p >/dev/null 2>&1
+}
+
 DRY_RUN=0
 for arg in "$@"; do
   case "$arg" in -n | --dry-run) DRY_RUN=1 ;; esac
@@ -18,14 +25,26 @@ if ! xcode-select -p >/dev/null 2>&1; then
   else
     echo "==> Installing Xcode Command Line Tools (accept the dialog)..."
     xcode-select --install || true
-    until xcode-select -p >/dev/null 2>&1; do sleep 10; done
+    waited=0
+    until xcode-select -p >/dev/null 2>&1; do
+      if [ "$waited" -ge 1800 ]; then
+        echo "! Command Line Tools still not installed after 30 minutes; re-run once they are." >&2
+        exit 1
+      fi
+      sleep 10
+      waited=$((waited + 10))
+    done
   fi
 fi
 
 if [ -d "$DEST/.git" ]; then
-  echo "==> Updating $DEST"
-  git -C "$DEST" pull --ff-only || echo "! could not update $DEST, using it as is"
-elif [ "$DRY_RUN" = 1 ] && ! command -v git >/dev/null 2>&1; then
+  if [ "$DRY_RUN" = 1 ]; then
+    echo "[dry-run] git -C $DEST pull --ff-only"
+  else
+    echo "==> Updating $DEST"
+    git -C "$DEST" pull --ff-only || echo "! could not update $DEST, using it as is"
+  fi
+elif [ "$DRY_RUN" = 1 ] && ! git_usable; then
   echo "[dry-run] git clone $REPO_URL $DEST"
   echo "git is not available yet, so the rest of the dry run can't be shown."
   exit 0

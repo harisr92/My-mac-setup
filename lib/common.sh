@@ -173,17 +173,22 @@ expand_home() {
   esac
 }
 
+# backup_path <path>: move path into $BACKUP_DIR, keeping its place under $HOME.
+backup_path() {
+  local rel=${1#"$HOME"/}
+  run_cmd mkdir -p "$(dirname "$BACKUP_DIR/$rel")" && run_cmd mv "$1" "$BACKUP_DIR/$rel"
+}
+
 # backup_and_link <source> <target>: symlink target -> source, moving any
 # existing file/dir at target into $BACKUP_DIR first.
 backup_and_link() {
-  local src=$1 target=$2 rel
+  local src=$1 target=$2
   if [ -L "$target" ] && [ "$(readlink "$target")" = "$src" ]; then
     mark_skipped "link $target" "already linked"
     return 0
   fi
   if [ -e "$target" ] || [ -L "$target" ]; then
-    rel=${target#"$HOME"/}
-    if ! { run_cmd mkdir -p "$(dirname "$BACKUP_DIR/$rel")" && run_cmd mv "$target" "$BACKUP_DIR/$rel"; }; then
+    if ! backup_path "$target"; then
       mark_failed "backup $target"
       return 1
     fi

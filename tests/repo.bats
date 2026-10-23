@@ -85,3 +85,19 @@ no_duplicates() {
   run gitleaks dir "$REPO_ROOT" --no-banner
   assert_status 0
 }
+
+@test "every Doom font family is installed by a cask" {
+  casks=" $(. "$REPO_ROOT/lib/common.sh" && list_names "$REPO_ROOT/gui/casks.txt" | tr '\n' ' ') "
+  families=$(grep -o ':family "[^"]*"' "$REPO_ROOT/configs/doom/config.el" | cut -d'"' -f2 | sort -u)
+  [ -n "$families" ] || skip "no fonts set in config.el"
+  while read -r family; do
+    slug=font-$(printf '%s' "$family" | tr '[:upper:] ' '[:lower:]-')
+    [[ "$casks" == *" $slug "* || "$casks" == *" $slug-nerd-font "* ]] ||
+      { echo "font '$family' needs $slug in gui/casks.txt"; return 1; }
+  done <<<"$families"
+}
+
+@test "Doom font specs use :size, not :size:" {
+  run grep -n ':size:' "$REPO_ROOT/configs/doom/config.el"
+  assert_status 1
+}

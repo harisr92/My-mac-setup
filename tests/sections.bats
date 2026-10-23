@@ -179,3 +179,23 @@ setup() {
   refute_called "defaults"
   refute_called "killall"
 }
+
+@test "section_shell: stops when the oh-my-zsh installer fails" {
+  stub curl 'echo "exit 1"'
+  section_shell >/dev/null 2>&1 || true
+  [ "$FAILED_ITEMS" = "oh-my-zsh"$'\n' ]
+  refute_called "git clone"
+  # so the next run retries the install
+  [ ! -e "$HOME/.oh-my-zsh" ]
+}
+
+@test "section_doom: stops if ~/.config/emacs can't be backed up" {
+  stub emacs
+  stub rg
+  mkdir -p "$HOME/.config/emacs"
+  stub mv 'exit 1'
+  section_doom >/dev/null 2>&1 || true
+  assert_contains "$FAILED_ITEMS" "backup $HOME/.config/emacs"
+  refute_called "git clone"
+  refute_called "doom install"
+}
