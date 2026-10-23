@@ -1,13 +1,15 @@
 # shellcheck shell=bash
 # Section: doom (Doom Emacs framework; config itself is linked by the configs section)
 
+EMACS_APP_BIN=${EMACS_APP_BIN:-/Applications/Emacs.app/Contents/MacOS/Emacs}
+
 section_doom() {
   local emacs_dir="$HOME/.config/emacs" doom_dir="$HOME/.config/doom"
 
   have git || { err "git is required for Doom Emacs"; mark_failed "doom"; return 0; }
   if ! have emacs; then
-    if [ -x /Applications/Emacs.app/Contents/MacOS/Emacs ]; then
-      export EMACS=/Applications/Emacs.app/Contents/MacOS/Emacs
+    if [ -x "$EMACS_APP_BIN" ]; then
+      export EMACS="$EMACS_APP_BIN"
     else
       warn "Emacs not found; install it with: ./setup.sh --only gui:emacs"
     fi
@@ -22,7 +24,7 @@ section_doom() {
     track "doom sync" "$emacs_dir/bin/doom" sync
   else
     if [ -e "$emacs_dir" ]; then
-      run mkdir -p "$BACKUP_DIR/.config" && run mv "$emacs_dir" "$BACKUP_DIR/.config/emacs"
+      run_cmd mkdir -p "$BACKUP_DIR/.config" && run_cmd mv "$emacs_dir" "$BACKUP_DIR/.config/emacs"
     fi
     git_clone https://github.com/doomemacs/doomemacs "$emacs_dir"
     track "doom install" "$emacs_dir/bin/doom" install --no-config --force

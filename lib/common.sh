@@ -3,6 +3,9 @@
 
 DRY_RUN=${DRY_RUN:-0}
 ASSUME_YES=${ASSUME_YES:-0}
+# Terminal used for prompts (overridable for tests)
+TTY_IN=${MAC_SETUP_TTY_IN:-/dev/tty}
+TTY_OUT=${MAC_SETUP_TTY_OUT:-/dev/tty}
 BACKUP_DIR="$HOME/.mac-setup-backup/$(date +%Y%m%d-%H%M%S)"
 
 # Summary buckets, newline separated
@@ -25,11 +28,11 @@ die()    { err "$*"; exit 1; }
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
-has_tty() { [ -r /dev/tty ] && [ -w /dev/tty ] && (exec </dev/tty) 2>/dev/null; }
+has_tty() { [ -r "$TTY_IN" ] && [ -w "$TTY_OUT" ] && (exec <"$TTY_IN") 2>/dev/null; }
 
-# run <cmd> [args...]: the only way mutating commands are executed.
+# run_cmd <cmd> [args...]: the only way mutating commands are executed.
 # In dry-run mode the command is printed instead.
-run() {
+run_cmd() {
   if [ "$1" = run_sh ]; then
     shift
     run_sh "$@"
@@ -44,7 +47,7 @@ run() {
   "$@"
 }
 
-# Same as run, but for a shell snippet (pipes, redirects, env assignments).
+# Same as run_cmd, but for a shell snippet (pipes, redirects, env assignments).
 run_sh() {
   if [ "$DRY_RUN" = 1 ]; then
     printf '%s[dry-run]%s %s\n' "$C_DIM" "$C_RESET" "$1"
@@ -60,11 +63,16 @@ mark_done() {
 mark_skipped() { SKIPPED_ITEMS="$SKIPPED_ITEMS$1"$'\n'; log "${C_DIM}- $1 (${2:-already done})${C_RESET}"; }
 mark_failed()  { FAILED_ITEMS="$FAILED_ITEMS$1"$'\n'; err "$1 failed"; }
 
-# track <label> <cmd> [args...]: run a command and record the outcome.
+# track <label> <cmd> [args...]: run_cmd a command and record the outcome.
 track() {
   local label=$1
   shift
-  if run "$@"; then mark_done "$label"; else mark_failed "$label"; fi
+  if run_cmd "$@"; then
+    mark_done "$label"
+  else
+    mark_failed "$label"
+    return 1
+  fi
 }
 
 # read_list <file>: print "name<TAB>description" for each entry,
@@ -121,8 +129,8 @@ choose() {
     printf '\n%s%s%s\n' "$C_BLUE" "$title" "$C_RESET"
     printf '%s\n' "$items" | awk -F'\t' '{ printf "  %3d) %-30s %s\n", NR, $1, $2 }'
     printf 'Select [Enter = all, n = none, e.g. "1 3 5-8"]: '
-  } >/dev/tty
-  read -r reply </dev/tty || reply=""
+  } >"$TTY_OUT"
+  read -r reply <"$TTY_IN" || reply=""
 
   case "$reply" in
     "" | a | all | A) printf '%s\n' "$names"; return 0 ;;
@@ -150,8 +158,8 @@ confirm() {
   local reply
   [ "$ASSUME_YES" = 1 ] && return 0
   has_tty || return 0
-  printf '%s [Y/n] ' "$1" >/dev/tty
-  read -r reply </dev/tty || reply=""
+  printf '%s [Y/n] ' "$1" >"$TTY_OUT"
+  read -r reply <"$TTY_IN" || reply=""
   case "$reply" in n | N | no | No) return 1 ;; esac
   return 0
 }
@@ -175,10 +183,12 @@ backup_and_link() {
   fi
   if [ -e "$target" ] || [ -L "$target" ]; then
     rel=${target#"$HOME"/}
-    run mkdir -p "$(dirname "$BACKUP_DIR/$rel")" &&
-      run mv "$target" "$BACKUP_DIR/$rel" || { mark_failed "backup $target"; return 1; }
+    if ! { run_cmd mkdir -p "$(dirname "$BACKUP_DIR/$rel")" && run_cmd mv "$target" "$BACKUP_DIR/$rel"; }; then
+      mark_failed "backup $target"
+      return 1
+    fi
   fi
-  [ -d "$(dirname "$target")" ] || run mkdir -p "$(dirname "$target")"
+  [ -d "$(dirname "$target")" ] || run_cmd mkdir -p "$(dirname "$target")"
   track "link $target -> $src" ln -s "$src" "$target"
 }
 
@@ -197,7 +207,9 @@ print_summary() {
   n_done=$(printf '%s' "$DONE_ITEMS" | grep -c . || true)
   n_skip=$(printf '%s' "$SKIPPED_ITEMS" | grep -c . || true)
   n_fail=$(printf '%s' "$FAILED_ITEMS" | grep -c . || true)
-  log "${C_GREEN}$n_done $([ "$DRY_RUN" = 1 ] && printf 'would be done' || printf done)${C_RESET}, $n_skip skipped, ${C_RED}$n_fail failed${C_RESET}"
+  local verb="done"
+  [ "$DRY_RUN" = 1 ] && verb="would be done"
+  log "${C_GREEN}$n_done $verb${C_RESET}, $n_skip skipped, ${C_RED}$n_fail failed${C_RESET}"
   if [ "$n_fail" -gt 0 ]; then
     log "Failed:"
     printf '%s' "$FAILED_ITEMS" | sed 's/^/  - /'

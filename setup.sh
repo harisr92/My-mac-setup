@@ -167,7 +167,11 @@ if [ "$DRY_RUN" = 0 ]; then
   confirm "Continue?" || exit 0
   # Cache sudo for Homebrew/cask installs and keep it alive
   if in_words brew "$PLAN" || in_words gui "$PLAN" || in_words cli "$PLAN"; then
-    sudo -v && { while true; do sudo -n true; sleep 50; kill -0 "$$" || exit; done 2>/dev/null & }
+    if sudo -v; then
+      while true; do sudo -n true; sleep 50; kill -0 "$$" || exit; done >/dev/null 2>&1 3>&- &
+      SUDO_KEEPALIVE=$!
+      trap 'kill "$SUDO_KEEPALIVE" 2>/dev/null' EXIT
+    fi
   fi
 fi
 

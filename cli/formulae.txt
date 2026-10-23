@@ -8,6 +8,7 @@ tree                        # Directory tree listing
 htop                        # Process viewer
 mas                         # Mac App Store CLI
 shellcheck                  # Shell script linter
+bats-core                   # Bash test runner (this repo's tests)
 
 # Search / navigation
 fzf                         # Fuzzy finder

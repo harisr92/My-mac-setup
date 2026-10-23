@@ -38,7 +38,7 @@ else
 fi
 
 # Reattach stdin to the terminal so prompts work under `curl | bash`
-if [ -r /dev/tty ]; then
+if [ -r /dev/tty ] && (exec </dev/tty) 2>/dev/null; then
   exec "$DEST/setup.sh" "$@" </dev/tty
 else
   exec "$DEST/setup.sh" "$@"

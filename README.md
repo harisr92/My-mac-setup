@@ -54,11 +54,12 @@ so it's safe to re-run.
 ```
 bootstrap.sh        curl | bash entry point
 setup.sh            main script
-lib/common.sh       helpers: dry-run aware run(), menus, symlinking
+lib/common.sh       helpers: dry-run aware run_cmd(), menus, symlinking
 cli/                Homebrew taps and formulae
 gui/                Homebrew casks and App Store apps
 configs/            dotfiles (zsh, git, doom, nvim) + links.txt
 scripts/            one file per section
+tests/              bats tests
 ```
 
 ## Adding things
@@ -67,6 +68,26 @@ scripts/            one file per section
 - **GUI app**: find the cask with `brew search --cask <name>`, add it to `gui/casks.txt`
 - **App Store app**: `mas search <name>`, add `<id>   # Name` to `gui/mas.txt`
 - **Dotfile**: copy it into `configs/<dir>/` and add `<dir>/<file>   ~/target` to `configs/links.txt`
+
+## Tests
+
+```sh
+brew install bats-core shellcheck   # both are in cli/formulae.txt
+bats tests/
+```
+
+The tests never touch the real machine. Each test gets a temporary `$HOME`, and
+`brew`, `git`, `curl`, `sudo`, `defaults` and the rest are replaced by stubs that record how
+they were called (`tests/test_helper.bash`).
+
+| File | Covers |
+|------|--------|
+| `tests/common.bats` | `lib/common.sh`: dry-run, list parsing, menus, prompts, symlinks/backups, summary |
+| `tests/brew.bats` | `brew`, `cli`, `gui`, `mas` sections |
+| `tests/sections.bats` | `configs`, `shell`, `doom`, `nvchad`, `macos` sections |
+| `tests/setup.bats` | `setup.sh` end to end: flags, selection, interactive menu, dry-run safety |
+| `tests/bootstrap.bats` | `bootstrap.sh`: clone/update, Command Line Tools, dry-run |
+| `tests/repo.bats` | bash 3.2 syntax, shellcheck, list/link consistency, gitleaks |
 
 ## Notes
 

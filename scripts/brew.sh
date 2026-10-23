@@ -3,7 +3,7 @@
 
 load_brew_env() {
   local b
-  for b in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+  for b in ${BREW_CANDIDATES-/opt/homebrew/bin/brew /usr/local/bin/brew}; do
     if [ -x "$b" ]; then
       eval "$("$b" shellenv)"
       return 0
@@ -73,7 +73,8 @@ section_mas() {
   fi
   warn "App Store installs need you to be signed in to the App Store app"
   local installed id
-  installed=$(have mas && mas list 2>/dev/null | awk '{ print $1 }' | tr '\n' ' ')
+  installed=""
+  have mas && installed=$(mas list 2>/dev/null | awk '{ print $1 }' | tr '\n' ' ')
   for id in "$@"; do
     if in_words "$id" "$installed"; then
       mark_skipped "app store $id"
