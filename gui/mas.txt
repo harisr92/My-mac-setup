@@ -1,0 +1,5 @@
+# Mac App Store apps (needs `mas` and an App Store sign-in)
+497799835                   # Xcode
+361309726                   # Pages
+361304891                   # Numbers
+490179405                   # Okta Verify

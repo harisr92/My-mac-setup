@@ -1,0 +1,59 @@
+# Core
+git                         # Version control
+coreutils                   # GNU core utilities
+gnupg                       # GPG encryption/signing
+wget                        # HTTP downloader
+jq                          # JSON processor
+tree                        # Directory tree listing
+htop                        # Process viewer
+mas                         # Mac App Store CLI
+shellcheck                  # Shell script linter
+bats-core                   # Bash test runner (this repo's tests)
+
+# Search / navigation
+fzf                         # Fuzzy finder
+fd                          # Fast find
+ripgrep                     # Fast grep (Doom/NvChad search)
+the_silver_searcher         # ag
+bat                         # cat with syntax highlighting
+tealdeer                    # tldr pages
+tokei                       # Code statistics
+
+# Editors
+neovim                      # Editor (NvChad config)
+libvterm                    # vterm for Doom Emacs
+aspell                      # Spell checking for Doom Emacs
+prettier                    # Code formatter
+
+# Build tools
+automake                    # GNU automake
+bison                       # Parser generator
+cmake                       # Build system
+poppler                     # PDF tools (pdf-tools)
+
+# Languages / runtimes
+nvm                         # Node version manager
+chruby                      # Ruby version switcher
+ruby-install                # Ruby installer
+cocoapods                   # iOS dependency manager
+jenv                        # Java version manager
+openjdk@25                  # Java
+gradle                      # Java/Android builds
+
+# Containers / infra
+docker                      # Docker CLI (engine from OrbStack)
+docker-buildx               # Docker buildx plugin
+docker-compose              # Docker compose
+hashicorp/tap/terraform     # Infrastructure as code
+nginx                       # Web server
+jenkins-lts                 # CI server
+
+# Databases
+mysql                       # MySQL server
+postgresql@18               # PostgreSQL server
+
+# Git hosting / security
+gh                          # GitHub CLI
+glab                        # GitLab CLI
+ggshield                    # Secret scanner
+semgrep                     # Static analysis
