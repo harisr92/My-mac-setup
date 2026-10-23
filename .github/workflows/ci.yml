@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  schedule:
+    # Weekly: Homebrew packages get renamed, deprecated or disabled upstream
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install test tools
+        run: brew install bats-core shellcheck gitleaks
+
+      - name: Run bats
+        env:
+          BATS_TEST_TIMEOUT: "60"
+        run: bats --timing --print-output-on-failure tests/
+
+  packages:
+    name: Package security check
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Tap declared taps
+        run: |
+          grep -vE '^[[:space:]]*(#|$)' cli/taps.txt | awk '{ print $1 }' | while read -r tap; do
+            brew tap "$tap"
+          done
+
+      - name: Check formulae, casks and App Store ids
+        run: ci/check-packages.sh
+
+  secrets:
+    name: Secret scan
+    runs-on: macos-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install gitleaks
+        run: brew install gitleaks
+
+      - name: Scan full git history
+        run: gitleaks git --redact --verbose .

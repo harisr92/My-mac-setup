@@ -59,6 +59,7 @@ cli/                Homebrew taps and formulae
 gui/                Homebrew casks and App Store apps
 configs/            dotfiles (zsh, git, doom, nvim) + links.txt
 scripts/            one file per section
+ci/                 package security check (used by GitHub Actions)
 tests/              bats tests
 ```
 
@@ -73,7 +74,7 @@ tests/              bats tests
 
 ```sh
 brew install bats-core shellcheck   # both are in cli/formulae.txt
-bats tests/
+BATS_TEST_TIMEOUT=60 bats tests/
 ```
 
 The tests never touch the real machine. Each test gets a temporary `$HOME`, and
@@ -87,11 +88,27 @@ they were called (`tests/test_helper.bash`).
 | `tests/sections.bats` | `configs`, `shell`, `doom`, `nvchad`, `macos` sections |
 | `tests/setup.bats` | `setup.sh` end to end: flags, selection, interactive menu, dry-run safety |
 | `tests/bootstrap.bats` | `bootstrap.sh`: clone/update, Command Line Tools, dry-run |
+| `tests/check_packages.bats` | `ci/check-packages.sh` against fake Homebrew metadata |
 | `tests/repo.bats` | bash 3.2 syntax, shellcheck, list/link consistency, gitleaks |
+
+## CI and package security
+
+`.github/workflows/ci.yml` runs on every push to `master`, on pull requests, and weekly:
+
+- **Tests**: the bats suite on a macOS runner.
+- **Package security check**: `ci/check-packages.sh` looks up every package in Homebrew
+  and the App Store. It fails on packages that don't exist, are disabled, are listed under
+  an old name, come from a tap not in `cli/taps.txt`, or download over plain http. It warns
+  on deprecated packages and casks with no checksum. Problems show up as annotations on the
+  exact line of the list file. Run it locally with `ci/check-packages.sh`.
+- **Secret scan**: gitleaks over the full git history.
+
+Dependabot keeps the pinned GitHub Action versions up to date.
 
 ## Notes
 
 - Configs are **symlinked**, so editing `~/.zshrc`, `~/.config/doom`, `~/.config/nvim` edits this repo.
   Anything that was already at a target is moved to `~/.mac-setup-backup/<timestamp>/` first.
 - Machine-specific settings go in `~/.zshrc.local` and `~/.gitconfig.local` (not tracked).
-- Not available through Homebrew, install by hand: DaVinci Resolve.
+- Not available through Homebrew, install by hand: DaVinci Resolve, darktable (its cask was disabled
+  in Sept 2026 for failing Gatekeeper; download from darktable.org).

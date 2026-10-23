@@ -55,5 +55,5 @@ postgresql@18               # PostgreSQL server
 # Git hosting / security
 gh                          # GitHub CLI
 glab                        # GitLab CLI
-gitguardian/tap/ggshield    # Secret scanner
+ggshield                    # Secret scanner
 semgrep                     # Static analysis

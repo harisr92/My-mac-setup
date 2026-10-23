@@ -89,13 +89,18 @@ esac"
 # --- section_cli ---
 
 @test "section_cli: taps missing taps and installs missing formulae" {
-  fake_brew "git" "" "hashicorp/tap"
+  fake_brew "git"
   section_cli git jq hashicorp/tap/terraform >/dev/null
-  assert_called "brew tap gitguardian/tap"
-  refute_called "brew tap hashicorp/tap"
+  assert_called "brew tap hashicorp/tap"
   refute_called "brew install --formula git"
   assert_called "brew install --formula jq"
   assert_called "brew install --formula hashicorp/tap/terraform"
+}
+
+@test "section_cli: skips taps that are already tapped" {
+  fake_brew "" "" "hashicorp/tap"
+  section_cli >/dev/null
+  refute_called "brew tap hashicorp/tap"
 }
 
 @test "section_cli: tapped formula counts as installed by its short name" {
@@ -121,7 +126,7 @@ esac"
 @test "section_cli: dry-run without brew lists installs" {
   DRY_RUN=1
   run section_cli jq
-  assert_contains "$output" "[dry-run] brew tap gitguardian/tap"
+  assert_contains "$output" "[dry-run] brew tap hashicorp/tap"
   assert_contains "$output" "[dry-run] brew install --formula jq"
 }
 

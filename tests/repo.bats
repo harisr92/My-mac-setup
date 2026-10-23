@@ -4,7 +4,7 @@
 load test_helper
 
 scripts() {
-  printf '%s\n' "$REPO_ROOT/setup.sh" "$REPO_ROOT/bootstrap.sh" "$REPO_ROOT/lib/common.sh" "$REPO_ROOT"/scripts/*.sh
+  printf '%s\n' "$REPO_ROOT/setup.sh" "$REPO_ROOT/bootstrap.sh" "$REPO_ROOT/lib/common.sh" "$REPO_ROOT"/scripts/*.sh "$REPO_ROOT"/ci/*.sh
 }
 
 @test "all scripts parse with macOS stock bash 3.2" {
@@ -22,6 +22,7 @@ scripts() {
 @test "entry points are executable" {
   [ -x "$REPO_ROOT/setup.sh" ]
   [ -x "$REPO_ROOT/bootstrap.sh" ]
+  [ -x "$REPO_ROOT/ci/check-packages.sh" ]
 }
 
 @test "zshrc parses" {

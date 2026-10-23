@@ -11,7 +11,7 @@ section_doom() {
     if [ -x "$EMACS_APP_BIN" ]; then
       export EMACS="$EMACS_APP_BIN"
     else
-      warn "Emacs not found; install it with: ./setup.sh --only gui:emacs"
+      warn "Emacs not found; install it with: ./setup.sh --only gui:emacs-app"
     fi
   fi
   have rg || warn "ripgrep not found; Doom needs it (./setup.sh --only cli:ripgrep)"
